@@ -1,1 +1,346 @@
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Luxury Gallery with Lightbox</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #0f0f0f;
+            overflow-x: hidden;
+        }
+
+        /* 🔥 WORD 'GALLERY' FIXED DEAD CENTER */
+        .gallery-title {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10vw;
+            font-weight: 700;
+            letter-spacing: 12px;
+            color: white;
+            z-index: 999;
+            pointer-events: none;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        /* 🔥 NEW WRAPPER FOR 3D SCROLLING */
+        .perspective-container {
+            perspective: 2000px;
+            width: 100%;
+            min-height: 100vh;
+            padding: 50px 0;
+        }
+
+        /* 4-COLUMN GRID (Top to Bottom) */
+        .grid {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 200px;
+            gap: 15px;
+            padding: 20px;
+            grid-auto-flow: dense;
+        }
+
+        /* IMAGE BOXES */
+        .img-box {
+            overflow: hidden;
+            border-radius: 16px;
+            transform-style: preserve-3d;
+            transition: transform .2s ease-out, box-shadow .3s ease;
+            cursor: pointer;
+            z-index: 1;
+            background: #222;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .img-box:hover {
+            z-index: 10;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* SIZES */
+        .wide {
+            grid-column: span 2;
+        }
+
+        .tall {
+            grid-row: span 2;
+        }
+
+        .big {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        /* 🔥 POPUP / LIGHTBOX STYLES */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 99999;
+        }
+
+        .popup img {
+            max-width: 85%;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 1);
+            object-fit: contain;
+        }
+
+        .popup.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close {
+            position: absolute;
+            top: 30px;
+            right: 50px;
+            font-size: 45px;
+            color: white;
+            cursor: pointer;
+            z-index: 100000;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 60px;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            padding: 20px;
+            transition: .2s;
+            z-index: 100000;
+        }
+
+        .arrow:hover {
+            transform: translateY(-50%) scale(1.1);
+            color: #ccc;
+        }
+
+        .left {
+            left: 30px;
+        }
+
+        .right {
+            right: 30px;
+        }
+
+        /* Mobile adjustment */
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 class="gallery-title" id="title">GALLERY</h1>
+
+    <div class="perspective-container">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="popup" id="popup">
+        <span class="close" id="closeBtn">✕</span>
+        <div class="arrow left" id="prev">&#10094;</div>
+        <img id="popupImg">
+        <div class="arrow right" id="next">&#10095;</div>
+    </div>
+
+    <script>
+        /* 🔥 HORIZONTAL IMAGES ONLY */
+        const horizontalImages = [
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/01.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/02.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/03.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/04.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/05.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/06.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/07.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/08.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/09.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/10.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/11.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/12.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/13.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/14.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/15.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/16.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/17.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/18.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/19.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/20.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/21.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/22.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/23.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/24.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/25.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/26.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/27.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/28.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/29.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/30.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/31.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/32.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/33.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/34.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/35.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/36.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/37.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/38.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/39.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/40.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/41.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/42.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/43.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/44.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/45.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/46.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/47.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/48.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/49.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/50.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/51.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/52.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/53.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/54.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/55.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/56.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/57.jpg",
+            "https://raw.githubusercontent.com/KuruvaVamshi/Grensiri-Home-coop-gallery-/refs/heads/main/58.jpg"
+        ];
+
+        const grid = document.getElementById("grid");
+
+        /* 🔥 ONLY HORIZONTAL IMAGES */
+        let mixed = horizontalImages.map(src => ({ src: src, type: "horizontal" }));
+
+        /* 🔥 LIGHTBOX SETUP */
+        const popup = document.getElementById("popup");
+        const popupImg = document.getElementById("popupImg");
+        const closeBtn = document.getElementById("closeBtn");
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+
+        let currentIndex = 0;
+        let isPopupActive = false;
+
+        /* 🔥 CREATE GRID & CLICK EVENT */
+        mixed.forEach((item, index) => {
+            const box = document.createElement("div");
+            box.classList.add("img-box");
+
+            const pattern = ["wide", "normal", "big", "wide", "normal", "normal"];
+            const size = pattern[index % pattern.length];
+            if (size === "big") box.classList.add("big");
+            else if (size === "wide") box.classList.add("wide");
+
+            const img = document.createElement("img");
+            img.src = item.src;
+            img.loading = "lazy";
+
+            box.appendChild(img);
+            grid.appendChild(box);
+
+            box.addEventListener("click", () => {
+                isPopupActive = true;
+                currentIndex = index;
+                popup.classList.add("active");
+                popupImg.src = mixed[currentIndex].src;
+            });
+        });
+
+        /* 🔥 LIGHTBOX CONTROLS */
+        function closePopup() {
+            popup.classList.remove("active");
+            isPopupActive = false;
+        }
+
+        closeBtn.addEventListener("click", closePopup);
+
+        next.addEventListener("click", () => {
+            currentIndex++;
+            if (currentIndex >= mixed.length) { currentIndex = 0; }
+            popupImg.src = mixed[currentIndex].src;
+        });
+
+        prev.addEventListener("click", () => {
+            currentIndex--;
+            if (currentIndex < 0) { currentIndex = mixed.length - 1; }
+            popupImg.src = mixed[currentIndex].src;
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") { closePopup(); }
+            if (e.key === "ArrowRight") { document.getElementById("next").click(); }
+            if (e.key === "ArrowLeft") { document.getElementById("prev").click(); }
+        });
+
+        popup.addEventListener("click", (e) => {
+            if (e.target !== popupImg && !e.target.classList.contains("arrow") && !e.target.classList.contains("close")) {
+                closePopup();
+            }
+        });
+
+        /* 3D MOUSE EFFECT */
+        document.addEventListener("mousemove", e => {
+            if (isPopupActive) return;
+
+            const boxes = document.querySelectorAll(".img-box");
+            const x = (e.clientX - window.innerWidth / 2) / window.innerWidth;
+            const y = (e.clientY - window.innerHeight / 2) / window.innerHeight;
+
+            boxes.forEach((box, i) => {
+                const moveX = x * (20 + (i % 3) * 10);
+                const moveY = y * (20 + (i % 3) * 10);
+
+                box.style.transform = `
+                    translateX(${moveX}px)
+                    translateY(${moveY}px)
+                    rotateY(${x * 10}deg)
+                    rotateX(${-y * 10}deg)
+                `;
+            });
+        });
+    </script>
+</body>
+
+</html>

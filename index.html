@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Luxury Gallery with Lightbox</title>
+    <title>Corporate Gallery</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* RESET */
         * {
@@ -22,8 +22,14 @@
         }
 
         /* 🔥 WORD 'GALLERY' FIXED DEAD CENTER */
+        .gallery-section {
+            position: relative;
+            min-height: 120vh;
+        }
+
         .gallery-title {
             position: fixed;
+            transition: opacity 0.3s ease;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -298,7 +304,9 @@
         }
 
         .footer-col:nth-child(1),
-        .footer-col:nth-child(2) {
+        .footer-col:nth-child(2),
+        .footer-col:nth-child(4),
+        .footer-col:nth-child(5) {
             align-items: flex-start;
             text-align: left;
         }
@@ -755,6 +763,28 @@
                     rotateX(${-y * 10}deg)
                 `;
             });
+        });
+        function toggleMenu() {
+            document.querySelector(".nav-menu").classList.toggle("active");
+        }
+
+        function closeMenu() {
+            document.querySelector(".nav-menu").classList.remove("active");
+        }
+        /* 🔥 HIDE TITLE NEAR FOOTER */
+        const title = document.getElementById("title");
+        const footer = document.querySelector("footer");
+
+
+        window.addEventListener("scroll", () => {
+            const footerTop = footer.getBoundingClientRect().top;
+            const screenHeight = window.innerHeight;
+
+            if (footerTop < screenHeight) {
+                title.style.opacity = "0";   // hide near footer
+            } else {
+                title.style.opacity = "1";   // show normally
+            }
         });
     </script>
 </body>
